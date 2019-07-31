@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+SCRIPT_PATH=$(dirname "$0")
+
+alias less='less -cqSM?~'
+
+show_help() {
+    clear
+    less -P "Tecle 'q' para sair..." <<< $(fold -s -w70 $SCRIPT_PATH"/apt-menu-help")
+}
+
+check_upgrades() {
+    read u n r h <<< $(apt-get upgrade -s -y | grep ^[0-9] | tr -cd '0-9 ')
+}
+
+apt_update() {
+    clear
+    echo -e "Atualizando o cachê de pacotes...\n"
+    sudo apt update &> /dev/null
+    check_upgrades
+    sleep 1
+}
+
+apt_list() {
+    less -P "[q] sair | [h] ajuda " <<< "$(apt list --upgradable 2>/dev/null)"
+}
+
+apt_upgrade() {
+    clear
+    echo -e "Preparando o upgrade do sistema...\n"
+    sudo apt update &> /dev/null
+    sudo apt upgrade
+    check_upgrades
+}
+
+menu_exit() {
+    clear
+    exit
+}
+
+menu() {
+    clear
+    while [[ $option != "0" ]]; do
+        echo "  =================================================="
+        echo "                ATUALIZAÇÃO DO SISTEMA"
+        echo "  =================================================="
+        echo "   Última atualização do cachê: $(date -r /var/cache/apt/pkgcache.bin +'%b %d, %Y %R')"
+        echo "   Atualizações ..............: $u"
+        echo "   Novos pacotes .............: $n"
+        echo "   Pacotes removidos .........: $r"
+        echo "   Pacotes em hold ...........: $h"
+        echo "  --------------------------------------------------"
+        echo "   1. Atualizar o cachê de pacotes"
+        echo "   2. Listar as atualizações"
+        echo "   3. Instalar as atualizações"
+        echo "  --------------------------------------------------"
+        echo "   9. Ajuda"
+        echo "   0. Sair"
+        echo "  =================================================="
+        echo -n "   Digite o número da opção desejada: "
+        read option
+        case $option in
+            1) apt_update  ;;
+            2) apt_list    ;;
+            3) apt_upgrade ;;
+            9) show_help   ;;
+        [0qQ]) menu_exit   ;;
+        esac
+        clear
+    done
+}
+
+echo -e "\nPreparando o menu de atualização..."
+check_upgrades
+menu

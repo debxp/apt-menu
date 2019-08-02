@@ -96,20 +96,22 @@ menu() {
         echo "   7. Informações                                apt-cache show"
         echo "   8. Listar pacotes instalados            apt list --installed"
         echo "  -------------------------------------------------------------"
+        echo "   9. Utilizar o terminal          retorna com o comando 'exit'"
         echo "   0. Sair"
         echo "  ============================================================="
         echo -e "   Digite a opção desejada e tecle 'ENTER': \c"
         read option
         case $option in
-            1) apt_update    ;;
-            2) apt_list      ;;
-            3) apt_upgrade   ;;
-            4) apt_autoclean ;;
+            1) apt_update     ;;
+            2) apt_list       ;;
+            3) apt_upgrade    ;;
+            4) apt_autoclean  ;;
             5) apt_autoremove ;;
-            6) apt_search ;;
-            7) apt_info ;;
-            8) apt_installed ;;
-        [0qQ]) menu_exit     ;;
+            6) apt_search     ;;
+            7) apt_info       ;;
+            8) apt_installed  ;;
+            9) clear; bash    ;;
+        [0qQ]) menu_exit      ;;
         esac
         clear
     done

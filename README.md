@@ -1,6 +1,8 @@
 # apt-menu versão 1.0
 Um pequeno menu em Bash Script para o gerenciamento básico e buscas nos pacotes do Debian e derivados. O script foi originalmente pensado como um recurso didático, tanto para exercitar a programação em Shell/Bash Script, quanto para demonstrar o uso do `apt` e alguns de seus comandos mais comuns.
 
+![Gif demo da versão *pre-release*](apt-menu-demo.gif)
+
 ## Opções
 
 O `apt-menu` trabalha com as seguintes opções:
@@ -23,6 +25,16 @@ O `apt-menu` trabalha com as seguintes opções:
 `apt list --installed`
 
 São, portanto, as opções mais utilizadas além dos comandos de instalação e remoção de pacotes (que, por questões de segurança, ficaram de fora do nosso menu).
+
+## Outros recursos
+
+Além das opções de gerenciamento, o script mostra as informações obtidas na última atualização do cachê de pacotes:  
+
+* Data da última atualização;
+* Quantidade de pacotes marcados para atualização;
+* Quantidade de pacotes novos;
+* Quantidade de pacotes a serem removidos;
+* Quantidade de pacotes retidos.
 
 Existe ainda uma última opção, que é a opção **Utilizar o terminal**, para que o usuário possa executar qualquer operação na linha de comandos e retornar ao menu (com o comando `exit`) quando quiser continuar.
 

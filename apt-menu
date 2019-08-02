@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 
+# INIT -------------------------------------------------------------------------
+
 SCRIPT_PATH=$(dirname "$0")
 
-alias less='less -cqSM?~'
-
-show_help() {
-    clear
-    less -P "Tecle 'q' para sair..." <<< $(fold -s -w70 $SCRIPT_PATH"/apt-menu-help")
-}
+# FUNCTIONS --------------------------------------------------------------------
 
 check_upgrades() {
     read u n r h <<< $(apt-get upgrade -s -y | grep ^[0-9] | tr -cd '0-9 ')
@@ -21,8 +18,32 @@ apt_update() {
     sleep 1
 }
 
+apt_autoclean() {
+    clear
+    echo -e "Removendo pacotes obsoletos...\n"
+    sudo apt autoclean
+    echo -e "\nDeseja remover dependências sem uso agora (s/N)? \c"
+    read remove
+    case $remove in
+        [YySs]) apt_autoremove ;;
+             *) continue ;;
+    esac
+}
+
+apt_autoremove() {
+    clear
+    echo -e "Removendo dependências sem uso...\n"
+    sudo apt autoremove
+    echo -e "\nDeseja remover pacotes obsoletos agora (s/N)? \c"
+    read remove
+    case $remove in
+        [YySs]) apt_autoremove ;;
+             *) continue ;;
+    esac
+}
+
 apt_list() {
-    less -P "[q] sair | [h] ajuda " <<< "$(apt list --upgradable 2>/dev/null)"
+    less -~ -cqSP "[q] sair | [h] ajuda " <<< "$(apt list --upgradable 2>/dev/null)"
 }
 
 apt_upgrade() {
@@ -33,6 +54,24 @@ apt_upgrade() {
     check_upgrades
 }
 
+apt_installed(){
+    pkg=$(apt list --installed 2> /dev/null | fzf)
+    [[ ! -z $pkg ]] && apt-cache show $pkg | less -~ -cqSP "[q] sair | [h] ajuda "
+}
+
+apt_search(){
+    echo -e "\n\n   Digite os termos que deseja pesquisar ('ENTER' cancela)\n   : \c"
+    read pkg
+    [[ ! -z $pkg ]] && busca=$(apt-cache search ${pkg} | sort | fzf)
+    [[ ! -z $busca ]] && apt-cache show $busca | less -~ -cqSP "[q] sair | [h] ajuda "
+}
+
+apt_info(){
+    echo -e "\n\n   Digite o nome do pacote ('ENTER' cancela)\n   : \c"
+    read pkg
+    [[ ! -z $pkg ]] && apt-cache show $pkg | less -~ -cqSP "[q] sair | [h] ajuda "
+}
+
 menu_exit() {
     clear
     exit
@@ -41,34 +80,42 @@ menu_exit() {
 menu() {
     clear
     while [[ $option != "0" ]]; do
-        echo "  =================================================="
-        echo "                ATUALIZAÇÃO DO SISTEMA"
-        echo "  =================================================="
+        echo "  =============================================================="
+        echo "                       APT MENU - versão 1.0"
+        echo "  =============================================================="
         echo "   Última atualização do cachê: $(date -r /var/cache/apt/pkgcache.bin +'%b %d, %Y %R')"
-        echo "   Atualizações ..............: $u"
-        echo "   Novos pacotes .............: $n"
-        echo "   Pacotes removidos .........: $r"
-        echo "   Pacotes em hold ...........: $h"
-        echo "  --------------------------------------------------"
-        echo "   1. Atualizar o cachê de pacotes"
-        echo "   2. Listar as atualizações"
-        echo "   3. Instalar as atualizações"
-        echo "  --------------------------------------------------"
-        echo "   9. Ajuda"
+        echo "  --------------------------------------------------------------"
+        echo "   Atualizações: $u | Novos: $n | Removidos: $r | Retidos: $h"
+        echo "  =============================================================="
+        echo "   1. Atualizar cachê                                apt update"
+        echo "   2. Listar as atualizações              apt list --upgradable"
+        echo "   3. Instalar as atualizações                      apt upgrade"
+        echo "   4. Remover pacotes obsoletos                   apt autoclean"
+        echo "   5. Remover dependências sem uso               apt autoremove"
+        echo "   6. Buscar                                   apt-cache search"
+        echo "   7. Informações                                apt-cache show"
+        echo "   8. Listar pacotes instalados            apt list --installed"
+        echo "  -------------------------------------------------------------"
         echo "   0. Sair"
-        echo "  =================================================="
-        echo -n "   Digite o número da opção desejada: "
+        echo "  ============================================================="
+        echo -e "   Digite a opção desejada e tecle 'ENTER': \c"
         read option
         case $option in
-            1) apt_update  ;;
-            2) apt_list    ;;
-            3) apt_upgrade ;;
-            9) show_help   ;;
-        [0qQ]) menu_exit   ;;
+            1) apt_update    ;;
+            2) apt_list      ;;
+            3) apt_upgrade   ;;
+            4) apt_autoclean ;;
+            5) apt_autoremove ;;
+            6) apt_search ;;
+            7) apt_info ;;
+            8) apt_installed ;;
+        [0qQ]) menu_exit     ;;
         esac
         clear
     done
 }
+
+# MAIN -------------------------------------------------------------------------
 
 echo -e "\nPreparando o menu de atualização..."
 check_upgrades
